@@ -1,5 +1,6 @@
 # termux-systemctl
 make systemctl3.py available in termux 
+file
 .  
 ├── bin  
 │   ├── halt -> systemctl  
@@ -18,10 +19,11 @@ make systemctl3.py available in termux
         └── service  
 
 * systemctl applet:  
-journalctl)  
-init|*.sh)  
-reboot)  
-halt)  
+journalctl) journalctl  
+init|*.sh) service start  
+reboot) service restart  
+halt) service stop  
 *)systemctl  
+
 * service applet:  
 Usage: service {start|stop|restart|status}  
