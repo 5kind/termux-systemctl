@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+script="${0}"
+script_cmd="${script}3.py"
+script_base=$(basename "$script")
+systemd_file="service"
+systemd_dir=("/lib/systemd" "$PREFIX/usr/lib/systemd")
+
+monitor_status() {
+  local monitor_name="$1"
+  local monitor_status=""
+  shift
+  "$monitor_name" $@ >/dev/null
+  if [ "$?" -eq 0 ]; then
+      monitor_status="\033[37m[\033[0m\033[0;32m  OK  \033[0m\033[37m]"
+      monitor_name="$(echo ${monitor_name:0:1} | tr '[:lower:]' '[:upper:]')${monitor_name:1}\033[0m"
+      echo -e "$monitor_status $monitor_name $@"
+  else
+      monitor_status="\033[37m[\033[0m\033[0;31mFAILED\033[0m\033[37m]"
+      monitor_name="Failed\033[0m $monitor_name"
+      echo -e "$monitor_status $monitor_name $@" 1>&2
+  fi
+}
+
+systemd() {
+  for dir in "${systemd_dirs[@]}"; do
+      if [ -n "$(find $dir -maxdepth 1 -iname "$systemd_file" -type f -print -quit)" ]; then
+          service="$dir/$systemd_file"
+          break
+      fi
+  done
+  if [ -z $service ] ;then return 1 ;fi
+  $service ${@}
+}
+
+control(){
+  [ -z "$command" ] && command=$script_cmd
+  [ ! -x /usr/bin/python3 ] && command="termux-chroot $command"
+  $command ${@}
+}
+
+systemctl(){
+  [ "$1" = "reboot" ] && monitor_status systemd restart && return 0
+  if [ "$EUID" -eq 0 ] || [ -n "${TERMUX_VERSION}" ] ; then
+    command="$script_cmd"
+  elif sudo_path=$(which sudo); then
+    command="$sudo_path $script_cmd"
+  else
+    echo -e "\033[0;31mCall to systemctl ${@} may fail: Interactive authentication required.\033[0m"
+    command="$script_cmd"
+  fi
+  control ${@}
+}
+
+journalctl(){ 
+  control ${@} 
+}
+
+case $script_base in
+  journalctl)
+    journalctl ${@}
+    ;;
+  init|*.sh)
+    monitor_status systemd start
+    ;;
+  reboot)
+    monitor_status systemd restart
+    ;;
+  halt)
+    monitor_status systemd stop
+    ;;
+  *)
+    systemctl ${@}
+    ;;
+esac
