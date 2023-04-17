@@ -28,3 +28,6 @@ halt) service stop
 
 * service applet:  
 Usage: service {start|stop|restart|status}  
+
+# todo
+make service better
