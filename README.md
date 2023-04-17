@@ -30,4 +30,5 @@ halt) service stop
 Usage: service {start|stop|restart|status}  
 
 # todo
-make service better
+* make service better
+* ~write a all_in_one systemd script~
