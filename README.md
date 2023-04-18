@@ -1,14 +1,14 @@
 # termux-systemctl
-make [systemctl3.py]（https://github.com/gdraheim/docker-systemctl-replacement） available in [termux]（https://github.com/termux/termux-app） 
+make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) available in [termux](https://github.com/termux/termux-app)  
 
 # Requirements
 ## necessary
 * Python3
-## 
+## optional
 * sudo（in proot/chroot Linux）
 * start-stop-daemon（dpkg）
 
-* file  
+# file  
 .  
 ├── bin  
 │   ├── halt -> systemctl  
@@ -26,6 +26,7 @@ make [systemctl3.py]（https://github.com/gdraheim/docker-systemctl-replacement�
     └── systemd  
         └── service  
 
+# content
 * systemctl applet:  
 journalctl) journalctl  
 init|*.sh) service start  
