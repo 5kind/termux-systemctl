@@ -5,6 +5,21 @@ make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) a
 * Python3                       (necessary)
 * sudo (in proot/chroot Linux)  (optional)
 
+# systemctl applet:  
+journalctl) journalctl  
+init|*.sh)  systemctl init  
+reboot)     systemctl halt  
+halt)       init&&halt  
+*)          systemctl  
+
+# How to use
+## necessary
+* install script files in [./local/bin](local/bin) to your $PATH
+## optional
+* use [systemd-init.service](lib/systemd/systemctl3.py/local.service) to run systemctl init in background
+* mklink `${PREFIX}/etc/profile.d/systemctl-init.sh` -> `$(which systemctl)` to run `systemctl start systemd-init` when login
+* mklink `${PREFIX}/var/log/journal/${service}.service.log` -> `../sv/${service}/current` to use `journalctl -u ${service} -f`
+
 # file  
 .  
 ├── bin -> local/bin  
@@ -36,23 +51,6 @@ make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) a
         └── sv  
             └── sshd  
                 └── current  
-
-# content
-* systemctl applet:  
-journalctl) journalctl  
-init|*.sh)  systemctl init  
-reboot)     systemctl halt  
-halt)       init&&halt  
-*)          systemctl  
-
-# How to use
-## necessary
-* install script files in [./local/bin](local/bin) to your $PATH
-
-## optional
-* use [systemd-init.service](lib/systemd/systemctl3.py/local.service) to run systemctl init in background
-* mklink `${PREFIX}/etc/profile.d/systemctl-init.sh` -> `$(which systemctl)` to run `systemctl start systemd-init` when login
-* mklink `${PREFIX}/var/log/journal/${service}.service.log` -> `../sv/${service}/current` to use `journalctl -u ${service} -f`
 
 # Known problems
 `systemctl status` can't show current status
