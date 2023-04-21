@@ -50,7 +50,8 @@ halt)       init&&halt
 * install script files in [./local/bin](local/bin) to your $PATH
 
 ## optional
-* mklink `${PREFIX}/etc/profile.d/systemctl-init.sh` -> `$(which systemctl)` to run `systemctl init` when login
+* use [systemd-init](lib/systemd/systemctl3.py/local.service) to run systemctl init in background
+* mklink `${PREFIX}/etc/profile.d/systemctl-init.sh` -> `$(which systemctl)` to run `systemctl start systemd-init` when login
 * mklink `${PREFIX}/var/log/journal/${service}.service.log` -> `../sv/${service}/current` to use `journalctl -u ${service} -f`
 
 # Known problems
