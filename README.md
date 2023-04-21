@@ -49,7 +49,7 @@ halt)       init&&halt
 
 # How to use
 ## necessary
-* install script files in [./local/file](local/file) to your $PATH
+* install script files in [./local/bin](local/bin) to your $PATH
 * enjoy
 ## optional
 * mklink $PREFIX/etc/profile.d/systemctl-init.sh -> $(which systemctl) to run systemctl init when login
