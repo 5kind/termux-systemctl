@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenSSH Daemon(SV)
+
+[Service]
+Type=simple
+PIDFile=/var/run/sshd.pid
+ExecStart=/usr/bin/sv start sshd
+ExecStop=/usr/bin/sv stop sshd
+ExecReload=/usr/bin/sv reload sshd
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

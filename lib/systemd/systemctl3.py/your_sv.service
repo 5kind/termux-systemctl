@@ -1,0 +1,13 @@
+[Unit]
+Description=Your Service
+
+[Service]
+Type=simple
+PIDFile=/var/run/your_service.pid
+ExecStart=/usr/bin/sv start your_service
+ExecStop=/usr/bin/sv stop your_service
+ExecReload=/usr/bin/sv reload your_service
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
