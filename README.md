@@ -1,5 +1,5 @@
 # Termux-Systemctl  (shell)
-make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) available in [termux](https://github.com/termux/termux-app)  
+run [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) in [termux](https://github.com/termux/termux-app)  
 
 # Requirements
 * Python3                       (necessary)
@@ -45,14 +45,13 @@ halt)       init&&halt
 │       ├── journalctl3.py  
 │       ├── systemctl  
 │       └── systemctl3.py  
-├── var  
-│   └── log  
-│       ├── journal  
-│       │   └── sshd.service.log -> ../sv/sshd/current  
-│       └── sv  
-│           └── sshd  
-│               └── current  
-...
+└── var  
+    └── log  
+        ├── journal  
+        │   └── sshd.service.log -> ../sv/sshd/current  
+        └── sv  
+            └── sshd  
+                └── current  
 ```
 
 # Known problems
