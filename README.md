@@ -52,8 +52,8 @@ halt)       init&&halt
 * install script files in [./local/bin](local/bin) to your $PATH
 * enjoy
 ## optional
-* mklink \$ {PREFIX}/etc/profile.d/systemctl-init.sh -> \$ (which systemctl) to run systemctl init when login
-* mklink ${PREFIX}/var/log/journal/${service}.service.log -> ../sv/${service}/current to see current ${service} log file
+* mklink `${PREFIX}/etc/profile.d/systemctl-init.sh` -> `$(which systemctl)` to run `systemctl init` when login
+* mklink `${PREFIX}/var/log/journal/${service}.service.log` -> `../sv/${service}/current` to use `journalctl -u ${service} -f`
 
 # Known problems
 `systemctl status` can't show current status
