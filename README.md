@@ -30,12 +30,12 @@ make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) a
 │       ├── systemctl  
 │       └── systemctl3.py  
 └── var  
-.    └── log  
-.        ├── journal  
-.        │   └── sshd.service.log -> ../sv/sshd/current  
-.        └── sv  
-.            └── sshd  
-.                └── current  
+    └── log  
+        ├── journal  
+        │   └── sshd.service.log -> ../sv/sshd/current  
+        └── sv  
+            └── sshd  
+                └── current  
 
 # content
 * systemctl applet:  
