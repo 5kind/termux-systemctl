@@ -2,8 +2,8 @@
 make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) available in [termux](https://github.com/termux/termux-app)  
 
 # Requirements
-* Python3 (necessary)
-* sudo（in proot/chroot Linux）(optional)
+* Python3                       (necessary)
+* sudo (in proot/chroot Linux)  (optional)
 
 # file  
 .  
