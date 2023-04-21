@@ -6,11 +6,11 @@ run [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) in
 * sudo (in proot/chroot Linux)  (optional)
 
 # Systemctl applet
-journalctl) journalctl  
-init|*.sh)  systemctl init  
-reboot)     systemctl halt  
-halt)       init&&halt  
-*)          systemctl  
+journalctl) `journalctl`  
+init|*.sh)  `systemctl init`  
+reboot)     `systemctl halt`  
+halt)       `init&&halt`  
+*)          `systemctl`  
 
 # How to use
 ## necessary
