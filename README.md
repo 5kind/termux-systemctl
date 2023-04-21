@@ -5,7 +5,7 @@ make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) a
 * Python3                       (necessary)
 * sudo (in proot/chroot Linux)  (optional)
 
-# systemctl applet:  
+# systemctl applet
 journalctl) journalctl  
 init|*.sh)  systemctl init  
 reboot)     systemctl halt  
