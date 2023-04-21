@@ -44,14 +44,15 @@ halt)       init&&halt
 │       ├── journalctl3.py  
 │       ├── systemctl  
 │       └── systemctl3.py  
-└── var  
-    └── log  
-        ├── journal  
-        │   └── sshd.service.log -> ../sv/sshd/current  
-        └── sv  
-            └── sshd  
-                └── current  
+├── var  
+│   └── log  
+│       ├── journal  
+│       │   └── sshd.service.log -> ../sv/sshd/current  
+│       └── sv  
+│           └── sshd  
+│               └── current  
+...
 
 # Known problems
-`systemctl status` can't show current status
-
+* `systemctl status` can't show current status  
+* `systemctl stop foo` may unable to close program  
