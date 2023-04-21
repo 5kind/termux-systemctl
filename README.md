@@ -1,11 +1,11 @@
-# termux-systemctl
+# Termux-Systemctl  (shell)
 make [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) available in [termux](https://github.com/termux/termux-app)  
 
 # Requirements
 * Python3                       (necessary)
 * sudo (in proot/chroot Linux)  (optional)
 
-# systemctl applet
+# Systemctl applet
 journalctl) journalctl  
 init|*.sh)  systemctl init  
 reboot)     systemctl halt  
@@ -20,7 +20,7 @@ halt)       init&&halt
 * mklink `${PREFIX}/etc/profile.d/systemctl-init.sh` -> `$(which systemctl)` to run `systemctl start systemd-init` when login
 * mklink `${PREFIX}/var/log/journal/${service}.service.log` -> `../sv/${service}/current` to use `journalctl -u ${service} -f`
 
-# file  
+# Files  
 .  
 ├── bin -> local/bin  
 ├── etc  
