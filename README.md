@@ -21,6 +21,7 @@ halt)       init&&halt
 * mklink `${PREFIX}/var/log/journal/${service}.service.log` -> `../sv/${service}/current` to use `journalctl -u ${service} -f`
 
 # Files  
+```
 .  
 ├── bin -> local/bin  
 ├── etc  
@@ -52,6 +53,7 @@ halt)       init&&halt
 │           └── sshd  
 │               └── current  
 ...
+```
 
 # Known problems
 * `systemctl status` can't show current status  
