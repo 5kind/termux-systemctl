@@ -1,68 +1,96 @@
-#!/usr/bin/env bash
-script="${0}"
-script_cmd="${script}3.py"
-script_base=$(basename "$script")
-systemctl=$(readlink -f "$script")
+#!/bin/sh
+
+ScriptName=${0}
+BaseName=$(basename ${ScriptName})
+DirName=$(dirname $(readlink -f ${ScriptName}))
+CommandName="${DirName}/${BaseName}3.py"
+SYSTEMCTL="${DirName}/systemctl3.py"
+LOGFILE="$PREFIX/var/log/journal/systemd-journald.service.log"
+
+no_sudo_commands="-h --help --version cat command default-services \
+                   environment get-default get-preset help is-enabled \
+                   list-dependencies list-start-dependencies list-unit-files \
+                   listen log"
+
+out() { printf "$1 $2\n" "${@:3}"; }
+error() { out "$@"; } >&2
+msg() { out "==>" "$@"; }
+msg2() { out "  ->" "$@";}
+die() { error "$@"; exit 1; }
+
+ignore_error() {
+  "$@" 2>/dev/null
+  return 0
+}
+
+mklinksv(){
+  for service in $PREFIX/var/service/*/ ;do
+    service=$(basename ${service})
+    [ -e "$PREFIX/lib/systemd/system/sv%N.service" ] && ignore_error ln -sn sv%N.service "$PREFIX/lib/systemd/system/$service.service"
+    [ -e "../sv/$service/current" ] && ln -sf "../sv/$service/current" "$PREFIX/var/log/journal/$service.service.log"
+  done
+}
+
+log_msg(){
+  echo "$(date +'%b %d %T') $(hostname) $(basename ${0})[$$]: ${@}"
+}
+
+log_msg_run(){
+  log_msg ${@}
+  ${@}
+}
+
+sudo_systemctl(){
+  if [ "$(id -u)" -eq 0 ] || [ -n "${TERMUX_VERSION}" ] ; then
+    command=${SYSTEMCTL}
+  elif which_sudo="$(which sudo)" ; then
+    command="${which_sudo} ${SYSTEMCTL}"
+  else
+    error "\033[0;31mFailed to ${@}: Interactive authentication required.\033[0m"
+    command=${SYSTEMCTL}
+  fi
+}
+
+systemctl() {
+  [ -z "$1" ] || ! echo "${no_sudo_commands}" | grep -qw "$1" && sudo_systemctl "$@"
+  control "$@"
+}
 
 control(){
-  [ -z "$command" ] && command=$script_cmd
-  [ ! -x /usr/bin/python3 ] && command="termux-chroot $command"
+  [ -z "$command" ] && command=${CommandName}
+  [ ! -x /usr/bin/python3 ] && command="termux-chroot ${command}"
   $command ${@}
 }
 
-systemctl(){
-  if [ "$EUID" -eq 0 ] || [ -n "${TERMUX_VERSION}" ] ; then
-    command="$script_cmd"
-  elif sudo_path=$(which sudo); then
-    command="$sudo_path $script_cmd"
-  else
-    echo -e "\033[0;31mCall to systemctl ${@} may fail: Interactive authentication required.\033[0m"
-    command="$script_cmd"
-  fi
-  control ${@}
-}
-
-journalctl(){
-  control ${@}
-}
-
-monitor_status() {
-  local monitor_name="$1"
-  local monitor_status=""
-  shift
-  "$monitor_name" $@ >/dev/null
-  if [ "$?" -eq 0 ]; then
-      monitor_status="\033[37m[\033[0m\033[0;32m  OK  \033[0m\033[37m]"
-      monitor_name="$(echo ${monitor_name:0:1} | tr '[:lower:]' '[:upper:]')${monitor_name:1}\033[0m"
-      echo -e "$monitor_status $monitor_name $@"
-  else
-      monitor_status="\033[37m[\033[0m\033[0;31mFAILED\033[0m\033[37m]"
-      monitor_name="Failed\033[0m $monitor_name"
-      echo -e "$monitor_status $monitor_name $@" 1>&2
-  fi
-}
-
 init(){
-  if ! $systemctl status systemd-init > /dev/null 2>&1 ; then
-    monitor_status $systemctl start systemd-init
-  fi
+  log_msg_run mount -a -v
+  systemctl init
+}
+
+umount_a(){
+  log_msg Umounting all filesystems mentioned in fstab
+  tac /etc/fstab | while read line; do
+    if [ "$(echo "$line" | cut -c1)" != "#" ]; then
+      dest=$(echo "$line" | awk '{print $2}')
+      [ -e "$dest" ] && [ -n "$dest" ] && log_msg_run umount -lr "$dest"
+    fi
+  done
+  mount -a -v
+  log_msg Umounted all filesystems mentioned in fstab
 }
 
 halt(){
-  $systemctl stop systemd-init&
-  $systemctl halt&
-  local halt_pid=$!
-  sleep 10 &
-  local sleep_pid=$!
-  wait -n $halt_pid $sleep_pid
-  kill $halt_pid $sleep_pid
+  # log_msg_run umount_a
+  systemctl halt
 }
 
-case $script_base in
+mklinksv
+
+case ${BaseName} in
   journalctl)
-    journalctl ${@}
+    control ${@}
     ;;
-  init|*.sh)
+  init)
     init
     ;;
   halt)
@@ -72,9 +100,7 @@ case $script_base in
     halt&&init
     ;;
   *)
+    # die "${BaseName}: applet not found"
     systemctl ${@}
     ;;
 esac
-
-unset script script_cmd script_base systemctl
-unset -f control systemctl journalctl monitor_status init halt

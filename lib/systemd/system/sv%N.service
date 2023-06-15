@@ -1,0 +1,13 @@
+[Unit]
+Description=Sv Service (%N)
+
+[Service]
+Type=simple
+PIDFile=/var/run/%N.pid
+ExecStart=/usr/bin/sv start %N
+ExecStop=/usr/bin/sv stop %N
+ExecReload=/usr/bin/sv reload %N
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
