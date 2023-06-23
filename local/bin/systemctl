@@ -4,6 +4,7 @@ ScriptName=${0}
 BaseName=$(basename ${ScriptName})
 DirName=$(dirname $(readlink -f ${ScriptName}))
 CommandName="${DirName}/${BaseName}3.py"
+
 SYSTEMCTL="${DirName}/systemctl3.py"
 LOGFILE="$PREFIX/var/log/journal/systemd-journald.service.log"
 
@@ -23,10 +24,29 @@ ignore_error() {
   return 0
 }
 
+sv_service(){
+  cat <<EOF
+[Unit]
+Description=Sv Service (%N)
+
+[Service]
+Type=simple
+PIDFile=/var/run/%N.pid
+ExecStart=/usr/bin/sv start %N
+ExecStop=/usr/bin/sv stop %N
+ExecReload=/usr/bin/sv reload %N
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
 mklinksv(){
+  [ ! -x $PREFIX/bin/sv ] && return 0
   for service in $PREFIX/var/service/*/ ;do
     service=$(basename ${service})
-    [ -e "$PREFIX/lib/systemd/system/sv%N.service" ] && ignore_error ln -sn sv%N.service "$PREFIX/lib/systemd/system/$service.service"
+    ignore_error sv_service > "$PREFIX/lib/systemd/system/$service.service"
     [ -e "../sv/$service/current" ] && ln -sf "../sv/$service/current" "$PREFIX/var/log/journal/$service.service.log"
   done
 }
