@@ -72,7 +72,14 @@ sudo_systemctl(){
 }
 
 systemctl() {
-  [ -z "$1" ] || ! echo "${no_sudo_commands}" | grep -qw "$1" && sudo_systemctl "$@"
+  [ -z "$1" ] && sudo_systemctl "$@"
+  case "$no_sudo_commands" in
+  *"$1"*)
+    ;;
+  *)
+    sudo_systemctl "$@"
+    ;;
+  esac
   control "$@"
 }
 
