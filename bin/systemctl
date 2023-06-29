@@ -74,7 +74,7 @@ sudo_systemctl(){
 systemctl() {
   [ -z "$1" ] && sudo_systemctl "$@"
   case "$no_sudo_commands" in
-  *"$1"*)
+  *"$1 "*|*" $1"*)
     ;;
   *)
     sudo_systemctl "$@"
@@ -86,7 +86,7 @@ systemctl() {
 control(){
   [ -z "$command" ] && command=${CommandName}
   [ ! -x /usr/bin/python3 ] && command="termux-chroot ${command}"
-  $command ${@}
+  exec $command ${@}
 }
 
 init(){
