@@ -1,0 +1,62 @@
+#!/bin/sh
+
+Applet=$(basename ${0})
+
+SYSTEMCTL_PY="systemctl3.py"
+SYSTEMCTL="$(dirname ${0})/$SYSTEMCTL_PY"
+
+out() { echo "$@" ; }
+error() { out "$@"; } >&2
+msg() { out "==>" "$@"; }
+msg2() { out "  ->" "$@";}
+die() { error "$@"; exit 1; }
+
+ignore_error() {
+  "$@" 2>/dev/null
+  return 0
+}
+
+systemctl() {
+  if [ -x /data/data/com.termux/files/usr/bin/python3 ] ;then
+    exec ${SYSTEMCTL} "$@"
+  else
+    error "The program python3 is not installed:
+    run sv "$@" instead."
+    exec sv "$@"
+  fi
+}
+
+out_sv_service(){
+  cat <<EOF
+[Unit]
+Description=Sv Service (%N)
+
+[Service]
+Type=simple
+PIDFile=/data/data/com.termux/files/usr/var/run/%N.pid
+ExecStart=/data/data/com.termux/files/usr/bin/sv start %N
+ExecStop=/data/data/com.termux/files/usr/bin/sv stop %N
+ExecReload=/data/data/com.termux/files/usr/bin/sv reload %N
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+[ -z $TERMUX_VERSION ] && die "This script only available in termux environment!"
+
+systemdir="$PREFIX/lib/systemd/system"
+[ ! -e "$systemdir" ] && mkdir -p "$systemdir"
+
+for servicedir in $SVDIR/*/ ;do
+  service=$(basename $servicedir)
+  systemd_service="$systemdir/$service.service"
+  sv_log="$LOGDIR/sv/$serivce/current"
+  service_log="$LOGDIR/journal/$serivce.log"
+
+  [ ! -e "$systemd_service" ] && out_sv_service > "$systemd_service"
+  [ -f "$sv_log" ] && ln -sn "$sv_log" "$service_log"
+done
+
+systemctl ${@}

@@ -5,9 +5,17 @@ run [systemctl3.py](https://github.com/gdraheim/docker-systemctl-replacement) in
 * Python3                       (necessary)
 * sudo (in proot/chroot Linux)  (optional)
 
-# Systemctl applet
-journalctl) `journalctl`  
-init)       `systemctl init`  
-halt)       `systemctl halt`  
-reboot)     `init&&halt`  
-*)          `systemctl`  
+# [Chroot Files](/bin/)
+* [start](/bin/start)
+Send start commands to the Host etc
+* [init](/bin/init)
+mount -a && systemctl3.py init
+* [journalctl](/bin/journalctl)
+journalctl3.py Python File
+* [systemctl](/bin/systemctl)
+sudo systemctl3.py $@
+* [systemctl3.py](/bin/systemctl3.py)
+[docker-systemctl-replacement](https://github.com/gdraheim/docker-systemctl-replacement)
+
+# [Termux Files](/termux/)
+See file under [termux](/termux/) for details.

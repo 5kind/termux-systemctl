@@ -1,2 +1,0 @@
-#!/data/data/com.termux/files/usr/bin/sh
-exec termux-chroot systemctl3.py init 2>&1

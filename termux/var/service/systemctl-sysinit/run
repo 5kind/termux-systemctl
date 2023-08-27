@@ -1,0 +1,2 @@
+#!/data/data/com.termux/files/usr/bin/sh
+exec systemctl3.py init 2>&1

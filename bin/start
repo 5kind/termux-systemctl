@@ -1,0 +1,102 @@
+#!/bin/sh
+
+SYSTEMCTL_PY="systemctl3.py"
+DIRNAME="$(dirname ${0})"
+SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
+COMMAND="${0##*/}"
+SYSTEM_BIN=/system/bin
+
+[ -n "$2" ] && shift
+
+out() { printf "$1 $2\n" "${@:3}"; }
+error() { out "==> ERROR:" "$@"; } >&2
+warning() { out "==> WARNING:" "$@"; } >&2
+msg() { out "==>" "$@"; }
+die() { error "$@"; exit 1; }
+
+usage() {
+cat <<EOF
+$COMMAND [OPTIONS...] COMMAND
+
+Send $COMMAND commands to the Host, or stop this Chroot Container.
+
+Applet
+EOF
+case $COMMAND in
+    reboot|poweroff|halt|shutdown)	cat <<EOF
+    reboot|poweroff|halt|shutdown
+                 Send $COMMAND commands to the Host,
+                 and Stop this Chroot Container
+EOF
+    ;;
+    *)				                      cat <<EOF
+    $COMMAND     Send $COMMAND commands to the Host
+EOF
+    ;;
+esac
+cat <<EOF
+Options:
+     --help      Show this help
+
+This is a fake $COMMAND script, See $(readlink -f ${0}) file for details.
+EOF
+}
+
+umount_dest(){
+  [ -n "$dest" ] && mountpoint -q "$dest" && umount $dest
+  out "\033[37m[\033[0m\033[0;32m  OK  \033[0m\033[37m] Umounted\033[0m $dest"
+}
+
+umount_fstab() {
+  while read src dest fstype opts dump pass; do
+    umount_dest
+  done <<< "$(grep -vE '^\s*(#|$)' /etc/fstab)"
+}
+
+is_unchroot_exist(){
+  if [ -e "/proc/1/root$1" ] ;then
+    return 0
+  else
+    warning "unchroot: $1 not found in /proc/1/root"
+    return 1
+  fi
+}
+
+unchroot(){
+  local chroot_args
+
+  if [ -n "$1" ] ;then
+    chroot_args=${@}
+  elif is_unchroot_exist $SHELL ;then
+    chroot_args="$SHELL"
+  else
+    chroot_args="/bin/sh"
+  fi
+  chroot /proc/1/root $chroot_args
+}
+
+system_command(){
+  is_unchroot_exist "$SYSTEM_BIN/$1" && \
+  unchroot "$SYSTEM_BIN/$@"
+}
+
+system_halt(){
+  $SYSTEMCTL halt
+  umount_fstab
+}
+
+case $1 in
+  -h|--help)  usage && exit 0 ;;
+  *)                          ;;
+esac
+
+[ "$(id -u)" -ne 0 ] &&       \
+echo "Must be root" && exit 1
+
+case $COMMAND in
+  reboot|poweroff|halt|shutdown)
+    system_command $COMMAND $@
+    system_halt               ;;
+  *)
+    system_command $COMMAND $@;;
+esac

@@ -1,0 +1,50 @@
+#!/bin/sh
+
+SYSTEMCTL_PY="systemctl3.py"
+DIRNAME="$(dirname ${0})"
+SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
+LOGDIR=/var/log/journal
+LOGFILE="$LOGDIR/sysinit.target.log"
+
+usage() {
+  cat <<EOF
+init [OPTIONS...] COMMAND
+
+Send control commands to the init daemon.
+
+Commands:
+  0              Power-off the machine
+  6              Reboot the machine
+  2, 3, 4, 5     Start runlevelX.target unit
+  1, s, S        Enter rescue mode
+  q, Q           Reload init daemon configuration
+  u, U           Reexecute init daemon
+
+Options:
+     --help      Show this help
+
+This is a fake init script, See $(readlink -f ${0}) file for details.
+EOF
+}
+
+system_init(){
+  [ "$(id -u)" -ne 0 ] && echo "Must be root" && exit 1
+  mkdir -p "$LOGDIR"
+  mount -a -v
+}
+
+case $1 in
+  -h|--help)  usage && exit 0     ;;
+  0)  COMMAND="$DIRNAME/poweroff" ;;
+  6)  COMMAND="$DIRNAME/reboot"   ;;
+  1|s|S)  COMMAND="/bin/sh"       ;;
+  q|Q|u|U)
+    SHELL="/bin/sh $SYSTEMCTL halt \
+    && $SYSTEMCTL init" && exit 0 ;;
+  *)
+    system_init
+    COMMAND="$SYSTEMCTL init"     ;;
+esac
+
+[ "$(id -u)" -ne 0 ] && echo "Must be root" && exit 1
+exec $COMMAND >> "$LOGFILE" 2>&1
