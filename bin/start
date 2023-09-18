@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SYSTEMCTL_PY="systemctl3.py"
-DIRNAME="$(dirname ${0})"
+DIRNAME="${0%/*}"
 SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
 UNCHROOT="$DIRNAME/unchroot"
 COMMAND="${0##*/}"
