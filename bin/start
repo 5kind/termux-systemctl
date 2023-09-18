@@ -3,6 +3,7 @@
 SYSTEMCTL_PY="systemctl3.py"
 DIRNAME="$(dirname ${0})"
 SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
+UNCHROOT="$DIRNAME/unchroot"
 COMMAND="${0##*/}"
 SYSTEM_BIN=/system/bin
 
@@ -39,7 +40,9 @@ Options:
      --help      Show this help
 
 This is a fake $COMMAND script, See $(readlink -f ${0}) file for details.
+
 EOF
+exec $UNCHROOT $COMMAND --help
 }
 
 umount_dest(){
@@ -53,30 +56,15 @@ umount_fstab() {
   done <<< "$(grep -vE '^\s*(#|$)' /etc/fstab)"
 }
 
-is_unchroot_exist(){
-  if [ -e "/proc/1/root$1" ] ;then
-    return 0
-  else
-    warning "unchroot: $1 not found in /proc/1/root"
-    return 1
-  fi
-}
-
 unchroot(){
-  local chroot_args
-
-  if [ -n "$1" ] ;then
-    chroot_args=${@}
-  elif is_unchroot_exist $SHELL ;then
-    chroot_args="$SHELL"
+  if [ -x /bin/bash ] ;then
+    $UNCHROOT ${@}
   else
-    chroot_args="/bin/sh"
+    error unchroot: /bin/bash not found!
   fi
-  chroot /proc/1/root $chroot_args
 }
 
 system_command(){
-  is_unchroot_exist "$SYSTEM_BIN/$1" && \
   unchroot "$SYSTEM_BIN/$@"
 }
 
