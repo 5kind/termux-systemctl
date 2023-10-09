@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SYSTEMCTL_PY="systemctl3.py"
 DIRNAME="${0%/*}"
