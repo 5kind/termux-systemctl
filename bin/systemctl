@@ -1,14 +1,20 @@
 #!/bin/sh
 
 SYSTEMCTL_PY="systemctl3.py"
-DIRNAME="${0%/*}"
-SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
-COMMAND="$SYSTEMCTL"
 
+get_cmd(){
+  local cmd="$1"
+  command -v "$cmd"
+  (( $? )) && printf "${0%/*}/$cmd"
+}
+
+SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
+COMMAND="$SYSTEMCTL"
 no_sudo_commands="-h --help --version version cat command default-services \
                    environment get-default get-preset help is-enabled \
                    list-dependencies list-start-dependencies list-unit-files \
                    listen log"
+
 
 out() { printf "$1 $2\n" "${@:3}"; }
 error() { out "==> ERROR:" "$@"; } >&2

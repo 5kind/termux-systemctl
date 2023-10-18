@@ -1,9 +1,15 @@
 #!/bin/bash
 
 SYSTEMCTL_PY="systemctl3.py"
-DIRNAME="${0%/*}"
-SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
-UNCHROOT="$DIRNAME/unchroot"
+
+get_cmd(){
+  local cmd="$1"
+  command -v "$cmd"
+  (( $? )) && printf "${0%/*}/$cmd"
+}
+
+SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
+UNCHROOT=$(get_cmd unchroot)
 COMMAND="${0##*/}"
 SYSTEM_BIN=/system/bin
 
@@ -46,7 +52,7 @@ exec $UNCHROOT $COMMAND --help
 }
 
 umount_dest(){
-  [ -n "$dest" ] && mountpoint -q "$dest" && umount $dest
+  [ -n "$dest" ] && mountpoint -q "$dest" && umount -l $dest
   out "\033[37m[\033[0m\033[0;32m  OK  \033[0m\033[37m] Umounted\033[0m $dest"
 }
 
@@ -78,8 +84,7 @@ case $1 in
   *)                          ;;
 esac
 
-[ "$(id -u)" -ne 0 ] &&       \
-echo "Must be root" && exit 1
+[ "$(id -u)" -ne 0 ] && die "This script must be run with root privileges"
 
 case $COMMAND in
   reboot|poweroff|halt|shutdown)

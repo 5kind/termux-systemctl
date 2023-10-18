@@ -1,10 +1,14 @@
 #!/bin/bash
 
 SYSTEMCTL_PY="systemctl3.py"
-DIRNAME="${0%/*}"
-SYSTEMCTL="$DIRNAME/$SYSTEMCTL_PY"
-LOGDIR=/var/log/journal
-LOGFILE="$LOGDIR/sysinit.target.log"
+
+get_cmd(){
+  local cmd="$1"
+  command -v "$cmd"
+  (( $? )) && printf "${0%/*}/$cmd"
+}
+
+SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
 
 usage() {
   cat <<EOF
@@ -28,15 +32,14 @@ EOF
 }
 
 system_init(){
-  [ "$(id -u)" -ne 0 ] && printf "Must be root" && exit 1
-  mkdir -p "$LOGDIR"
+  ln -srf /tmp /tmp/run
   mount -a -v
 }
 
 case $1 in
   -h|--help)  usage && exit 0     ;;
-  0)  COMMAND="$DIRNAME/poweroff" ;;
-  6)  COMMAND="$DIRNAME/reboot"   ;;
+  0)  COMMAND=$(get_cmd poweroff) ;;
+  6)  COMMAND=$(get_cmd reboot)   ;;
   1|s|S)  COMMAND="/bin/sh"       ;;
   q|Q|u|U)
     SHELL="/bin/sh $SYSTEMCTL halt \
@@ -46,5 +49,5 @@ case $1 in
     COMMAND="$SYSTEMCTL init"     ;;
 esac
 
-[ "$(id -u)" -ne 0 ] && printf "Must be root" && exit 1
-exec $COMMAND >> "$LOGFILE" 2>&1
+[ "$(id -u)" -ne 0 ] && printf "Must be root\n" && exit 1
+exec $COMMAND
