@@ -3,7 +3,6 @@
 shopt -s extglob
 
 chpid=1
-chcwd=0
 
 # shellcheck disable=SC2059 # $1 and $2 can contain the printf modifiers
 out() { printf "$1 $2\n" "${@:3}"; }
@@ -24,7 +23,6 @@ usage: ${0##*/} [command] [arguments...]
     -h                  Print this help message
     -p <pid>            Run in /proc/\$pid/root instead of pid 1
     -u <user>[:group]   Specify non-root user and optional group to use
-    -c                  Export \$HOME=/proc/\$pid/cwd
 
 If 'command' is unspecified, ${0##*/} will launch \$SHELL($SHELL) or /bin/sh.
 
@@ -41,19 +39,16 @@ unchroot() {
   exec chroot "${chroot_args[@]}" -- "$chrootdir" "${args[@]}"
 }
 
-unchroot_readlink() {
-  printf %s $($0 -p $chpid /bin/readlink -f "$1")
-}
-
 unchroot_shell() {
-  if [[ -n $(unchroot_readlink $SHELL) ]] ;then
+  local chroot_shell="$chrootdir$SHELL"
+  if [[ -x $chroot_shell || -L $chroot_shell ]] ;then
     printf %s $SHELL
   else
     printf %s /bin/sh
   fi
 }
 
-while getopts ':hp:u:c' flag; do
+while getopts ':hp:u:' flag; do
   case $flag in
     h)
       usage
@@ -65,9 +60,6 @@ while getopts ':hp:u:c' flag; do
     u)
       userspec=$OPTARG
       ;;
-    c)
-      chcwd=1
-      ;;
     :)
       die '%s: option requires an argument -- '\''%s'\' "${0##*/}" "$OPTARG"
       ;;
@@ -78,9 +70,8 @@ while getopts ':hp:u:c' flag; do
 done
 shift $(( OPTIND - 1 ))
 
-chrootdir=/proc/$chpid/root
 (( EUID == 0 )) || die 'This script must be run with root privileges'
+chrootdir=/proc/$chpid/root
 args=("$@")
-[[ -z "$@" ]] && args=$(unchroot_shell)
-(( $chcwd )) && export HOME=$(unchroot_readlink /proc/$chpid/cwd)
+[[ -z "$args" ]] && args=$(unchroot_shell)
 unchroot
