@@ -1,11 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
 SYSTEMCTL_PY="systemctl3.py"
 
 get_cmd(){
   local cmd="$1"
-  command -v "$cmd"
-  (( $? )) && printf "${0%/*}/$cmd"
+  command -v "$cmd" || printf "${0%/*}/$cmd"
 }
 
 SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
@@ -31,8 +30,14 @@ This is a fake init script, See $(readlink -f ${0}) file for details.
 EOF
 }
 
+prepare(){
+  [ ! -L "/tmp/run" ] && ln -sfr /tmp /tmp/run
+  [ ! -x $SYSTEMCTL ] && die "${0##*/}: command not found: $SYSTEMCTL_PY"
+  [ ! -x /usr/bin/python3 ] && die "${0##*/}: command not found: python3"
+}
+
 system_init(){
-  ln -srf /tmp /tmp/run
+  prepare
   mount -a -v
 }
 

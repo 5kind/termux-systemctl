@@ -1,31 +1,161 @@
-#! /usr/bin/python3
+#!/bin/bash
 
-import argparse
-import os
-import sys
+SYSTEMCTL_PY="systemctl3.py"
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-u', '--unit', metavar='unit', type=str, required=True, help='Systemd unit to display')
-parser.add_argument('-f', '--follow', default=False, action='store_true', help='Follows the log')
-parser.add_argument('-n', '--lines', metavar='num', type=int, help='Num of lines to display')
-parser.add_argument('--no-pager', default=False, action='store_true', help='Do not pipe through a pager')
-parser.add_argument('--system', default=False, action='store_true', help='Show system units')
-parser.add_argument('--user', default=False, action='store_true', help='Show user units')
-parser.add_argument('--root', metavar='path', type=str, help='Use subdirectory path')
-parser.add_argument('-x', default=False, action='store_true', help='Switch on verbose mode')
-args = parser.parse_args()
+get_cmd(){
+  local cmd="$1"
+  command -v "$cmd" || printf "${0%/*}/$cmd"
+}
 
-systemctl_py = "systemctl3.py"
-path = os.path.dirname(sys.argv[0])
-systemctl = os.path.join(path, systemctl_py)
+SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
 
-cmd = [ systemctl, "log", args.unit ] # drops the -u
-if args.follow: cmd += [ "-f" ]
-if args.lines: cmd += [ "-n", str(args.lines) ]
-if args.no_pager: cmd += [ "--no-pager" ]
-if args.system: cmd += [ "--system" ]
-elif args.user: cmd += [ "--user" ]
-if args.root: cmd += [ "--root", start(args.root) ]
-if args.x: cmd += [ "-vvv" ]
+unit=""
+follow=false
+lines=""
+no_pager=false
+system=false
+user=false
+root=""
+x=false
 
-os.execvp(cmd[0], cmd)
+out() { printf "$1 $2\n" "${@:3}"; }
+error() { out "${0##*/}: error:" "$@"; } >&2
+die() { error "$@"; exit 1; }
+
+ignore_error() {
+  "$@" 2>/dev/null
+  return 0
+}
+
+usage() {
+cat << EOF
+usage: ${0##*/} [-h] -u unit [-f] [-n num] [--no-pager]
+                  [--system] [--user] [--root path] [-x]
+EOF
+}
+
+usage_verbose(){
+usage
+cat << EOF
+
+options:
+  -h, --help            show this help message and exit
+  -u unit, --unit unit  Systemd unit to display
+  -f, --follow          Follows the log
+  -n num, --lines num   Num of lines to display
+  --no-pager            Do not pipe through a pager
+  --system              Show system units
+  --user                Show user units
+  --root path           Use subdirectory path
+  -x                    Switch on verbose mode
+EOF
+}
+
+die_arg(){
+  local arg=$1
+  shift
+  if [ -z "$@" ] ;then
+    local die0="$arg"
+  else
+    local die0="$@"
+  fi
+
+  case $arg in
+    -*|"")
+      usage
+      die "${die1}${die0}${die2}"
+      ;;
+    *)
+      ;;
+    esac
+}
+
+expected_arg(){
+  die1="argument "
+  die2=": expected one argument"
+  die_arg $@
+}
+
+required_arg(){
+  die1="the following arguments are required: "
+  die2=""
+  die_arg $@
+}
+
+prepare(){
+  [ ! -L "/tmp/run" ] && ln -sfr /tmp /tmp/run
+  [ ! -x $SYSTEMCTL ] && die "${0##*/}: command not found: $SYSTEMCTL_PY"
+  [ ! -x /usr/bin/python3 ] && die "${0##*/}: command not found: python3"
+}
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    -h|--help)
+      usage_verbose
+      exit 0
+      ;;
+    -u|--unit)
+      shift
+      expected_arg $1 "-u/--unit"
+      unit=$1
+      ;;
+    -f|--follow)
+      follow=true
+      ;;
+    -n|--lines)
+      shift
+      lines=$1
+      ;;
+    --no-pager)
+      no_pager=true
+      ;;
+    --system)
+      system=true
+      ;;
+    --user)
+      user=true
+      ;;
+    --root)
+      shift
+      root=$1
+      ;;
+    -x)
+      x=true
+      ;;
+    *)
+      error "argument $1: ignored explicit argument\'$1\'"
+      shift
+      ;;
+  esac
+  shift
+done
+
+required_arg "$unit" "-u/--unit"
+
+cmd=("$SYSTEMCTL" "log" "$unit")
+if [ "$follow" = true ]; then
+  cmd+=("-f")
+fi
+if [ -n "$lines" ]; then
+  cmd+=("-n" "$lines")
+fi
+if [ "$no_pager" = true ]; then
+  cmd+=("--no-pager")
+fi
+if [ "$system" = true ]; then
+  cmd+=("--system")
+elif [ "$user" = true ]; then
+  cmd+=("--user")
+fi
+if [ -n "$root" ]; then
+  cmd+=("--root" "$root")
+fi
+if [ "$x" = true ]; then
+  cmd+=("-vvv")
+fi
+
+prepare
+[ -r "/var/log/journal/$unit.log" ] || \
+[ -r "/var/log/journal/$unit.service.log" ] && \
+ignore_error exec "${cmd[@]}"
+exec "${cmd[@]}"

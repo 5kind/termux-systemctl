@@ -4,8 +4,7 @@ SYSTEMCTL_PY="systemctl3.py"
 
 get_cmd(){
   local cmd="$1"
-  command -v "$cmd"
-  (( $? )) && printf "${0%/*}/$cmd"
+  command -v "$cmd" || printf "${0%/*}/$cmd"
 }
 
 SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
@@ -17,8 +16,6 @@ SYSTEM_BIN=/system/bin
 
 out() { printf "$1 $2\n" "${@:3}"; }
 error() { out "==> ERROR:" "$@"; } >&2
-warning() { out "==> WARNING:" "$@"; } >&2
-msg() { out "==>" "$@"; }
 die() { error "$@"; exit 1; }
 
 usage() {
@@ -66,7 +63,7 @@ unchroot(){
   if [ -x /bin/bash ] ;then
     $UNCHROOT ${@}
   else
-    error unchroot: /bin/bash not found!
+    error unchroot: command not found: bash
   fi
 }
 

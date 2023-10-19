@@ -4,27 +4,30 @@ SYSTEMCTL_PY="systemctl3.py"
 
 get_cmd(){
   local cmd="$1"
-  command -v "$cmd"
-  (( $? )) && printf "${0%/*}/$cmd"
+  command -v "$cmd" || printf "${0%/*}/$cmd"
 }
 
 SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
 COMMAND="$SYSTEMCTL"
-no_sudo_commands="-h --help --version version cat command default-services \
-                   environment get-default get-preset help is-enabled \
-                   list-dependencies list-start-dependencies list-unit-files \
-                   listen log"
 
+no_sudo_commands="-h --help --version version \
+cat command default-services environment get-default \
+get-preset help is-enabled list-dependencies \
+list-start-dependencies list-unit-files listen log"
 
 out() { printf "$1 $2\n" "${@:3}"; }
 error() { out "==> ERROR:" "$@"; } >&2
-warning() { out "==> WARNING:" "$@"; } >&2
-msg() { out "==>" "$@"; }
 die() { error "$@"; exit 1; }
 
 ignore_error() {
   "$@" 2>/dev/null
   return 0
+}
+
+prepare(){
+  [ ! -L "/tmp/run" ] && ln -sfr /tmp /tmp/run
+  [ ! -x $SYSTEMCTL ] && die "${0##*/}: command not found: $SYSTEMCTL_PY"
+  [ ! -x /usr/bin/python3 ] && die "${0##*/}: command not found: python3"
 }
 
 sudo_command(){
@@ -38,6 +41,7 @@ sudo_command(){
 }
 
 systemctl() {
+  prepare
   [ -z "$1" ] && sudo_command
 
   case " $no_sudo_commands " in
