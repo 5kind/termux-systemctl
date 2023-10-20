@@ -1,14 +1,16 @@
 #!/bin/sh
 
-Applet=$(basename ${0})
-
 SYSTEMCTL_PY="systemctl3.py"
-SYSTEMCTL="$(dirname ${0})/$SYSTEMCTL_PY"
 
-out() { echo "$@" ; }
-error() { out "$@"; } >&2
-msg() { out "==>" "$@"; }
-msg2() { out "  ->" "$@";}
+get_cmd(){
+  local cmd="$1"
+  command -v "$cmd" || printf "${0%/*}/$cmd"
+}
+
+SYSTEMCTL=$(get_cmd $SYSTEMCTL_PY)
+
+out() { printf "$1 $2\n" "${@:3}"; }
+error() { out "${0##*/}: error:" "$@"; } >&2
 die() { error "$@"; exit 1; }
 
 ignore_error() {
