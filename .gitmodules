@@ -1,0 +1,3 @@
+[submodule "docker-systemctl-replacement"]
+	path = docker-systemctl-replacement
+	url = https://github.com/gdraheim/docker-systemctl-replacement
