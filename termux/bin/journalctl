@@ -83,7 +83,6 @@ required_arg(){
 }
 
 prepare(){
-  [ ! -L "/tmp/run" ] && ln -sfr /tmp /tmp/run
   [ ! -x $SYSTEMCTL ] && die "${0##*/}: command not found: $SYSTEMCTL_PY"
   [ ! -x $PREFIX/bin/python3 ] && die "${0##*/}: command not found: python3"
 }
@@ -155,7 +154,7 @@ if [ "$x" = true ]; then
 fi
 
 prepare
-[ -r "/var/log/journal/$unit.log" ] || \
-[ -r "/var/log/journal/$unit.service.log" ] && \
+[ -r "$PREFIX/var/log/journal/$unit.log" ] || \
+[ -r "$PREFIX/var/log/journal/$unit.service.log" ] && \
 ignore_error exec "${cmd[@]}"
 exec "${cmd[@]}"

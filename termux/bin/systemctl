@@ -49,16 +49,17 @@ EOF
 [ -z $TERMUX_VERSION ] && die "This script only available in termux environment!"
 
 systemdir="$PREFIX/lib/systemd/system"
-[ ! -e "$systemdir" ] && mkdir -p "$systemdir"
+journaldir="$LOGDIR/journal"
+mkdir -p "$systemdir" "$journaldir"
 
 for servicedir in $SVDIR/*/ ;do
   service=$(basename $servicedir)
   systemd_service="$systemdir/$service.service"
-  sv_log="$LOGDIR/sv/$serivce/current"
-  service_log="$LOGDIR/journal/$serivce.log"
+  sv_log="$LOGDIR/sv/$service/current"
+  service_log="$LOGDIR/journal/$service.service.log"
 
-  [ ! -e "$systemd_service" ] && out_sv_service > "$systemd_service"
-  [ -f "$sv_log" ] && ln -sn "$sv_log" "$service_log"
+  [ -e "$systemd_service" ] || out_sv_service > "$systemd_service"
+  [ -f "$sv_log" ] && ln -srn "$sv_log" "$service_log"
 done
 
 systemctl ${@}
