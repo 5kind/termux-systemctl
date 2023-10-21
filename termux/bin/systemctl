@@ -59,7 +59,7 @@ for servicedir in $SVDIR/*/ ;do
   service_log="$LOGDIR/journal/$service.service.log"
 
   [ -e "$systemd_service" ] || out_sv_service > "$systemd_service"
-  [ -f "$sv_log" ] && ln -srn "$sv_log" "$service_log"
+  [ -f "$sv_log" ] && ln -srnf "$sv_log" "$service_log"
 done
 
 systemctl ${@}
