@@ -46,11 +46,18 @@ WantedBy=multi-user.target
 EOF
 }
 
+link_target(){
+    local target=$1
+    [ ! -e "$systemdir/$target" ] && ln -s /dev/null "$systemdir/$target"
+}
+
 [ -z $TERMUX_VERSION ] && die "This script only available in termux environment!"
 
 systemdir="$PREFIX/lib/systemd/system"
 journaldir="$LOGDIR/journal"
 mkdir -p "$systemdir" "$journaldir"
+link_target sysinit.target
+link_target multi-user.target
 
 for servicedir in $SVDIR/*/ ;do
   service=$(basename $servicedir)
