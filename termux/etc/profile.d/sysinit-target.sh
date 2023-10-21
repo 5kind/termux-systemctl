@@ -10,11 +10,11 @@ stop(){
     rm -f $PIDFILE
 }
 # Must be a valid filename
-NAME=systemctl-sysinit
+NAME=sysinit-target
 PIDDIR=$PREFIX/var/run
 PIDFILE=$PIDDIR/$NAME.pid
 #This is the command to be run, give the full pathname
-DAEMON=$PREFIX/bin/systemctl3.py
+DAEMON=systemctl3.py
 DAEMON_OPTS="init"
 
 case "$1" in
